@@ -71,6 +71,20 @@ jobs:
             ${{ runner.OS }}-fixtures-
             ${{ runner.OS }}-
 
+      - name: Cache PeerTube pip directory
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+          key: ${{ runner.OS }}-${{ matrix.test_suite }}-pip-v1
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+          key: ${{ runner.OS }}-${{ matrix.test_suite }}-hugging-face-v1
+
       - name: Set env test variable (schedule)
         if: github.event_name != 'schedule'
         run: |
@@ -78,7 +92,7 @@ jobs:
 
       - name: Run Test
         # external-plugins tests only run on schedule
-        if: github.event_name == 'schedule' || matrix.test_suite != 'external-plugins'
+        # if: github.event_name == 'schedule' || matrix.test_suite != 'external-plugins'
         env:
           AKISMET_KEY: ${{ secrets.AKISMET_KEY }}
         run: npm run ci -- ${{ matrix.test_suite }}

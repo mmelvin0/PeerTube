@@ -1,38 +1,46 @@
-import { createLogger, Logger } from 'winston'
-import { join } from 'node:path'
+import { SimpleLogger } from '@peertube/peertube-models'
+import { buildSUUID, SUUID } from '@peertube/peertube-node-utils'
 import { PerformanceObserver } from 'node:perf_hooks'
-import { buildSUUID, SUUID, root } from '@peertube/peertube-node-utils'
+import { join } from 'path'
+import { TranscriptFile, TranscriptFormat } from './transcript-file.js'
 import { TranscriptionEngine } from './transcription-engine.js'
 import { TranscriptionModel } from './transcription-model.js'
 import { TranscriptionRun } from './transcription-run.js'
-import { TranscriptFile, TranscriptFormat } from './transcript/index.js'
 
 export interface TranscribeArgs {
   mediaFilePath: string
   model: TranscriptionModel
+  format: TranscriptFormat
+  transcriptDirectory: string
+
   language?: string
-  format?: TranscriptFormat
   runId?: SUUID
 }
 
 export abstract class AbstractTranscriber {
-  public static DEFAULT_TRANSCRIPT_DIRECTORY = join(root(), 'dist', 'transcripts')
+  protected engine: TranscriptionEngine
+  protected binDirectory: string
+  protected enginePath: string
 
-  engine: TranscriptionEngine
-  logger: Logger
-  transcriptDirectory: string
-  performanceObserver?: PerformanceObserver
-  run?: TranscriptionRun
+  protected logger: SimpleLogger
 
-  constructor (
-    engine: TranscriptionEngine,
-    logger: Logger = createLogger(),
-    transcriptDirectory: string = AbstractTranscriber.DEFAULT_TRANSCRIPT_DIRECTORY,
+  protected performanceObserver?: PerformanceObserver
+  protected run?: TranscriptionRun
+
+  constructor (options: {
+    engine: TranscriptionEngine
+    binDirectory?: string
+    enginePath?: string
+
+    logger: SimpleLogger
     performanceObserver?: PerformanceObserver
-  ) {
+  }) {
+    const { engine, logger, enginePath, binDirectory, performanceObserver } = options
+
     this.engine = engine
+    this.enginePath = enginePath
     this.logger = logger
-    this.transcriptDirectory = transcriptDirectory
+    this.binDirectory = binDirectory
     this.performanceObserver = performanceObserver
   }
 
@@ -59,11 +67,25 @@ export abstract class AbstractTranscriber {
     return model.format === 'PyTorch'
   }
 
+  getEngine () {
+    return this.engine
+  }
+
+  protected getEngineBinary () {
+    if (this.enginePath) return this.enginePath
+    if (this.binDirectory) return join(this.binDirectory, this.engine.binary)
+
+    return this.engine.binary
+  }
+
   abstract transcribe ({
     mediaFilePath,
     model,
     language,
     format = 'vtt',
+    transcriptDirectory,
     runId = buildSUUID()
   }: TranscribeArgs): Promise<TranscriptFile>
+
+  abstract install (path: string): Promise<void>
 }
