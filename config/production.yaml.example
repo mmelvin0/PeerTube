@@ -744,7 +744,7 @@ video_transcription:
 
   # Or specify the model path:
   #  * PyTorch model file path for 'openai-whisper'
-  #  * CTranslate2 Whisper model directory path for 'openai-whisper'
+  #  * CTranslate2 Whisper model directory path for 'whisper-ctranslate2'
   # If not provided, PeerTube will automatically download the model
   model_path: null
 

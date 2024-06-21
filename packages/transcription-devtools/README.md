@@ -33,7 +33,6 @@ MODELS=tiny,small,large npm run benchmark
 ```
 
 ## Jiwer
------
 
 > *JiWER is a python tool for computing the word-error-rate of ASR systems.*
 > https://jitsi.github.io/jiwer/cli/
@@ -58,7 +57,7 @@ console.log(await jiwerCLI.cer())
 console.log(await jiwerCLI.alignment())
 ```
 
-Resources
----------
+## Resources
+
 - https://jitsi.github.io/jiwer/
 - https://github.com/rapidfuzz/RapidFuzz
